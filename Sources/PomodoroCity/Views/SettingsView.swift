@@ -107,6 +107,7 @@ public struct SettingsView: View {
                 .padding(.bottom, 28)
                 .padding(.top, 4)
                 .frame(maxWidth: 760, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .onAppear {
