@@ -14,9 +14,11 @@ jobs:
         run: |
           sw_vers; uname -m; swift --version
       - name: Build
-        run: swift build -c release 2>&1 | tee build.log
+        run: swift build -c release 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        shell: bash
       - name: Test
-        run: swift test 2>&1 | tee test.log
+        run: swift test 2>&1 | tee test.log; exit ${PIPESTATUS[0]}
+        shell: bash
       - name: Package DMG
         run: VERSION="0.${{ github.run_number }}.0" BUILD="${{ github.run_number }}" ./scripts/package.sh
       - name: Launch smoke test + screenshots
@@ -30,6 +32,16 @@ jobs:
           if kill -0 $PID 2>/dev/null; then echo "app still running after 8s: OK"; else echo "APP CRASHED"; cat shots/app.log; exit 1; fi
           screencapture -x shots/launch.png || true
           kill $PID || true
+      - name: Publish CI output branch (logs and screenshots, readable via git)
+        if: always()
+        continue-on-error: true
+        run: |
+          mkdir -p ci-out && cp -R shots ci-out/ 2>/dev/null || true
+          tail -n 400 build.log > ci-out/build.log 2>/dev/null || true
+          tail -n 400 test.log > ci-out/test.log 2>/dev/null || true
+          cd ci-out && git init -q -b ci-output && git config user.name ci && git config user.email ci@example.com
+          git add -A && git commit -q -m "CI output for ${{ github.sha }}" --allow-empty
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-output
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -43,7 +55,7 @@ jobs:
           name: PomodoroCity-dmg
           path: build/PomodoroCity.dmg
       - name: Publish release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release]')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
