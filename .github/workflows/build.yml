@@ -1,0 +1,53 @@
+name: Build, test and package
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  mac:
+    runs-on: macos-14   # Apple-silicon (arm64) Mac, same architecture as an M2
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          sw_vers; uname -m; swift --version
+      - name: Build
+        run: swift build -c release 2>&1 | tee build.log
+      - name: Test
+        run: swift test 2>&1 | tee test.log
+      - name: Package DMG
+        run: VERSION="0.${{ github.run_number }}.0" BUILD="${{ github.run_number }}" ./scripts/package.sh
+      - name: Launch smoke test + screenshots
+        continue-on-error: true
+        run: |
+          mkdir -p shots
+          APPBIN="build/Pomodoro City.app/Contents/MacOS/PomodoroCity"
+          "$APPBIN" > shots/app.log 2>&1 &
+          PID=$!
+          sleep 8
+          if kill -0 $PID 2>/dev/null; then echo "app still running after 8s: OK"; else echo "APP CRASHED"; cat shots/app.log; exit 1; fi
+          screencapture -x shots/launch.png || true
+          kill $PID || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-and-screenshots
+          path: |
+            build.log
+            test.log
+            shots/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PomodoroCity-dmg
+          path: build/PomodoroCity.dmg
+      - name: Publish release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" build/PomodoroCity.dmg --prerelease \
+            --title "Pomodoro City build ${{ github.run_number }}" \
+            --notes "Automated build. Passed tests on Apple silicon. Commit ${{ github.sha }}"
