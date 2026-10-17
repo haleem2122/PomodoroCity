@@ -1,0 +1,74 @@
+Building for debugging...
+[0/9] Write sources
+[2/9] Write PomodoroCity-entitlement.plist
+[3/9] Write swift-version-76B232A4806BA581.txt
+[5/23] Emitting module PomodoroCity
+[6/23] Compiling PomodoroCity NotificationManager.swift
+[7/23] Compiling PomodoroCity SaveManager.swift
+[8/23] Compiling PomodoroCity TimerManager.swift
+[9/23] Compiling PomodoroCity Building.swift
+[10/23] Compiling PomodoroCity District.swift
+[11/23] Compiling PomodoroCity GameState.swift
+[12/23] Compiling PomodoroCity Resource.swift
+[13/23] Compiling PomodoroCity SessionRecord.swift
+[14/23] Compiling PomodoroCity PomodoroCity.swift
+[15/23] Compiling PomodoroCity BuildingCatalogueView.swift
+[16/23] Compiling PomodoroCity CityScene.swift
+[17/23] Compiling PomodoroCity CityView.swift
+[18/23] Compiling PomodoroCity IsometricTileRenderer.swift
+[19/29] Compiling PomodoroCity ResourceBar.swift
+[20/29] Compiling PomodoroCity FocusView.swift
+[21/29] Compiling PomodoroCity HistoryView.swift
+[22/29] Compiling PomodoroCity MainTabView.swift
+[23/29] Compiling PomodoroCity SettingsView.swift
+[24/29] Compiling PomodoroCity Theme.swift
+[24/29] Write Objects.LinkFileList
+[25/29] Linking PomodoroCity
+[26/29] Applying PomodoroCity
+[28/31] Compiling PomodoroCityTests GameLogicTests.swift
+/Users/runner/work/PomodoroCity/PomodoroCity/Tests/PomodoroCityTests/GameLogicTests.swift:114:13: warning: main actor-isolated class 'TimerManagerTests' has different actor isolation from nonisolated superclass 'XCTestCase'; this is an error in Swift 6
+final class TimerManagerTests: XCTestCase {
+            ^
+[29/31] Emitting module PomodoroCityTests
+/Users/runner/work/PomodoroCity/PomodoroCity/Tests/PomodoroCityTests/GameLogicTests.swift:114:13: warning: main actor-isolated class 'TimerManagerTests' has different actor isolation from nonisolated superclass 'XCTestCase'; this is an error in Swift 6
+final class TimerManagerTests: XCTestCase {
+            ^
+[29/31] Write Objects.LinkFileList
+[30/31] Linking PomodoroCityPackageTests
+Build complete! (15.10s)
+Test Suite 'All tests' started at 2026-10-17 10:57:45.000.
+Test Suite 'PomodoroCityPackageTests.xctest' started at 2026-10-17 10:57:45.002.
+Test Suite 'GameLogicTests' started at 2026-10-17 10:57:45.002.
+Test Case '-[PomodoroCityTests.GameLogicTests testBuildingBonuses]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testBuildingBonuses]' passed (0.020 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testBuildingCostsAreUnchanged]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testBuildingCostsAreUnchanged]' passed (0.001 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testDistrictUnlockThresholds]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testDistrictUnlockThresholds]' passed (0.000 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testPlacementRules]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testPlacementRules]' passed (0.001 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testResourceMath]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testResourceMath]' passed (0.000 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testSaveFileCompatibility]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testSaveFileCompatibility]' passed (0.003 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testSaveManagerRoundTripAndBackupRecovery]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testSaveManagerRoundTripAndBackupRecovery]' passed (0.011 seconds).
+Test Case '-[PomodoroCityTests.GameLogicTests testStarterResourcesAndBuildings]' started.
+Test Case '-[PomodoroCityTests.GameLogicTests testStarterResourcesAndBuildings]' passed (0.000 seconds).
+Test Suite 'GameLogicTests' passed at 2026-10-17 10:57:45.040.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.037 (0.038) seconds
+Test Suite 'TimerManagerTests' started at 2026-10-17 10:57:45.040.
+Test Case '-[PomodoroCityTests.TimerManagerTests testMoveIsFreeAndTownHallIsPermanent]' started.
+Test Case '-[PomodoroCityTests.TimerManagerTests testMoveIsFreeAndTownHallIsPermanent]' passed (0.004 seconds).
+Test Case '-[PomodoroCityTests.TimerManagerTests testPlaceBuildingChargesCostAndPersists]' started.
+Test Case '-[PomodoroCityTests.TimerManagerTests testPlaceBuildingChargesCostAndPersists]' passed (0.004 seconds).
+Test Case '-[PomodoroCityTests.TimerManagerTests testPlaceRejectsUnaffordableOccupiedAndLocked]' started.
+Test Case '-[PomodoroCityTests.TimerManagerTests testPlaceRejectsUnaffordableOccupiedAndLocked]' passed (0.002 seconds).
+Test Case '-[PomodoroCityTests.TimerManagerTests testTimerStateMachine]' started.
+Test Case '-[PomodoroCityTests.TimerManagerTests testTimerStateMachine]' passed (0.001 seconds).
+Test Suite 'TimerManagerTests' passed at 2026-10-17 10:57:45.052.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'PomodoroCityPackageTests.xctest' passed at 2026-10-17 10:57:45.052.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.049 (0.050) seconds
+Test Suite 'All tests' passed at 2026-10-17 10:57:45.052.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.049 (0.052) seconds
