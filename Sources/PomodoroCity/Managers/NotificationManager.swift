@@ -5,7 +5,8 @@ public class NotificationManager {
     public static let shared = NotificationManager()
 
     private var center: UNUserNotificationCenter? {
-        guard Bundle.main.bundleIdentifier != nil else { return nil }
+        // UNUserNotificationCenter only works inside a real .app bundle (not `swift run` or the test runner).
+        guard Bundle.main.bundleIdentifier != nil, Bundle.main.bundlePath.hasSuffix(".app") else { return nil }
         return UNUserNotificationCenter.current()
     }
     private let eveningReminderIdentifier = "pomodoro_city_evening_reminder"
