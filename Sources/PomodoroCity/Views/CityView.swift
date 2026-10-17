@@ -21,83 +21,55 @@ public struct CityView: View {
 
     public var body: some View {
         ZStack {
-            // SpriteKit Interactive Canvas
+            // SpriteKit interactive canvas
             SpriteView(scene: scene)
                 .ignoresSafeArea()
 
-            // Top Header: Resource Bar & Controls
-            VStack(spacing: 8) {
-                HStack {
+            VStack(spacing: 10) {
+                // Top bar: resources on the left, tools on the right
+                HStack(alignment: .center, spacing: 10) {
                     ResourceBar(timerManager: timerManager)
 
                     Spacer()
 
-                    // Construction Mode Toggle Button
-                    Button(action: {
-                        isConstructionMode.toggle()
-                        scene.isConstructionMode = isConstructionMode
-                        selectedBuildingType = nil
-                        scene.selectedBuildingTypeToPlace = nil
-                        scene.selectedBuildingToMove = nil
-                        if isConstructionMode {
-                            showMessage("Construction Mode ON: Click catalogue to place or click a building to move it.")
-                        } else {
-                            showMessage("Normal Mode: Pan & zoom freely. Click buildings to inspect.")
-                        }
-                    }) {
+                    Button(action: toggleConstructionMode) {
                         HStack(spacing: 6) {
-                            Image(systemName: isConstructionMode ? "hammer.circle.fill" : "hammer.circle")
-                                .font(.system(size: 15))
-                            Text(isConstructionMode ? "Done Building" : "Build Mode")
+                            Image(systemName: isConstructionMode ? "checkmark" : "hammer")
                                 .font(.system(size: 12, weight: .semibold))
+                            Text(isConstructionMode ? "Done building" : "Build")
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(isConstructionMode ? Color.orange : Color(nsColor: .windowBackgroundColor).opacity(0.85))
-                        .foregroundColor(isConstructionMode ? .white : .primary)
-                        .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(SmallButtonStyle(prominent: isConstructionMode))
 
-                    // Zoom Controls
-                    HStack(spacing: 4) {
-                        Button(action: { scene.zoomIn() }) {
-                            Image(systemName: "plus.magnifyingglass")
-                                .frame(width: 28, height: 28)
-                        }
-                        Button(action: { scene.zoomOut() }) {
-                            Image(systemName: "minus.magnifyingglass")
-                                .frame(width: 28, height: 28)
-                        }
-                        Button(action: { scene.resetView() }) {
-                            Image(systemName: "arrow.counterclockwise")
-                                .frame(width: 28, height: 28)
-                        }
+                    HStack(spacing: 0) {
+                        ToolButton(icon: "plus", help: "Zoom in") { scene.zoomIn() }
+                        Rectangle().fill(Theme.line).frame(width: 1, height: 16)
+                        ToolButton(icon: "minus", help: "Zoom out") { scene.zoomOut() }
+                        Rectangle().fill(Theme.line).frame(width: 1, height: 16)
+                        ToolButton(icon: "scope", help: "Reset view") { scene.resetView() }
                     }
-                    .padding(4)
-                    .background(Color(nsColor: .windowBackgroundColor).opacity(0.85))
-                    .cornerRadius(8)
+                    .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Theme.raised))
+                    .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Theme.line, lineWidth: 1))
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
+                .padding(.horizontal, 20)
+                .padding(.top, 34)
 
-                // Temporary Banner Message
+                // Temporary banner message
                 if let msg = bannerMessage {
                     Text(msg)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Theme.sans(12.5, .medium))
+                        .foregroundColor(Theme.ink)
                         .padding(.horizontal, 14)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color.black.opacity(0.75))
-                        )
-                        .foregroundColor(.white)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(Theme.raised))
+                        .overlay(Capsule().stroke(Theme.line, lineWidth: 1))
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 3)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
                 Spacer()
 
-                // Inspector Card for Selected Building / Tile
+                // Inspector card for the selected building
                 if let info = selectedTileInfo, let building = info.building {
                     BuildingInspectorCard(
                         building: building,
@@ -119,20 +91,25 @@ public struct CityView: View {
                             selectedTileInfo = nil
                         }
                     )
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                // Bottom Building Catalogue (in Construction Mode)
+                // Building catalogue (construction mode)
                 if isConstructionMode {
                     BuildingCatalogueView(
                         timerManager: timerManager,
                         selectedBuildingType: $selectedBuildingType
                     )
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else {
+                    Color.clear.frame(height: 6)
                 }
             }
+            .animation(.easeInOut(duration: 0.2), value: isConstructionMode)
+            .animation(.easeInOut(duration: 0.2), value: selectedTileInfo?.building?.id)
         }
         .onAppear {
             scene.onSelectTile = { x, y, b in
@@ -157,7 +134,20 @@ public struct CityView: View {
         }
     }
 
-    // MARK: - Scene Actions
+    // MARK: - Actions
+
+    private func toggleConstructionMode() {
+        isConstructionMode.toggle()
+        scene.isConstructionMode = isConstructionMode
+        selectedBuildingType = nil
+        scene.selectedBuildingTypeToPlace = nil
+        scene.selectedBuildingToMove = nil
+        if isConstructionMode {
+            showMessage("Build mode on: pick from the catalogue to place, or click a building to move it.")
+        } else {
+            showMessage("Build mode off: pan and zoom freely, click buildings to inspect.")
+        }
+    }
 
     public func didSelectTile(x: Int, y: Int, building: PlacedBuilding?) {
         selectedTileInfo = (x: x, y: y, building: building)
@@ -197,6 +187,26 @@ public struct CityView: View {
     }
 }
 
+private struct ToolButton: View {
+    let icon: String
+    let help: String
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(hovering ? Theme.sageDeep : Theme.ink)
+                .frame(width: 32, height: 30)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .onHover { hovering = $0 }
+    }
+}
+
 private struct BuildingInspectorCard: View {
     let building: PlacedBuilding
     let onMove: () -> Void
@@ -204,69 +214,64 @@ private struct BuildingInspectorCard: View {
     let onClose: () -> Void
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             Image(systemName: building.type.iconName)
-                .font(.system(size: 26))
-                .foregroundColor(.accentColor)
+                .font(.system(size: 20))
+                .foregroundColor(Theme.sageDeep)
                 .frame(width: 44, height: 44)
-                .background(Color(nsColor: .controlBackgroundColor))
-                .cornerRadius(8)
+                .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.sageSoft))
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack {
+                HStack(spacing: 6) {
                     Text(building.type.displayName)
-                        .font(.system(size: 14, weight: .bold))
+                        .font(Theme.serif(16, .medium))
+                        .foregroundColor(Theme.ink)
                     if building.type.isPermanent {
                         Text("Permanent")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(Theme.sans(10.5, .semibold))
+                            .foregroundColor(Theme.sageDeep)
                             .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.2))
-                            .foregroundColor(.blue)
-                            .cornerRadius(4)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(Theme.sageSoft))
                     }
                 }
 
                 Text(building.type.description)
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .font(Theme.sans(12))
+                    .foregroundColor(Theme.muted)
 
                 if let bonus = building.type.bonusDescription {
-                    Text("Bonus: \(bonus) (Active)")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.green)
+                    Text("Bonus: \(bonus) (active)")
+                        .font(Theme.sans(11.5, .semibold))
+                        .foregroundColor(Theme.sageDeep)
                 }
             }
 
             Spacer()
 
-            // Move Button (Always free, never charges resources)
+            // Moving is always free and never charges resources
             Button(action: onMove) {
-                Label("Move (Free)", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
-                    .font(.system(size: 11, weight: .medium))
+                Label("Move (free)", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(SmallButtonStyle())
 
             if !building.type.isPermanent {
                 Button(action: onDemolish) {
                     Image(systemName: "trash")
-                        .font(.system(size: 11))
-                        .foregroundColor(.red)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(SmallButtonStyle(destructive: true))
+                .help("Demolish")
             }
 
             Button(action: onClose) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary)
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(Theme.muted)
+                    .frame(width: 22, height: 22)
             }
             .buttonStyle(.plain)
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
-                .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
-        )
+        .themedCard(padding: 12)
+        .shadow(color: Color.black.opacity(0.12), radius: 10, x: 0, y: 4)
     }
 }

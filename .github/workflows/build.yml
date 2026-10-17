@@ -21,17 +21,35 @@ jobs:
         shell: bash
       - name: Package DMG
         run: VERSION="0.${{ github.run_number }}.0" BUILD="${{ github.run_number }}" ./scripts/package.sh
-      - name: Launch smoke test + screenshots
+      - name: Launch smoke test + screenshots (light and dark)
         continue-on-error: true
         run: |
           mkdir -p shots
           APPBIN="build/Pomodoro City.app/Contents/MacOS/PomodoroCity"
-          "$APPBIN" > shots/app.log 2>&1 &
-          PID=$!
-          sleep 8
-          if kill -0 $PID 2>/dev/null; then echo "app still running after 8s: OK"; else echo "APP CRASHED"; cat shots/app.log; exit 1; fi
-          screencapture -x shots/launch.png || true
-          kill $PID || true
+          DEMO="$RUNNER_TEMP/demo-save"
+          python3 scripts/make_demo_save.py "$DEMO"
+          shoot() {  # name, tab, extra-env
+            local name="$1" tab="$2" extra="$3"
+            env POMODORO_SAVE_DIR="$DEMO" POMODORO_TAB="$tab" $extra "$APPBIN" > "shots/$name.log" 2>&1 &
+            local pid=$!
+            sleep 7
+            if kill -0 $pid 2>/dev/null; then echo "$name: running OK"; else echo "$name: APP CRASHED"; cat "shots/$name.log"; fi
+            screencapture -x "shots/$name.png" || true
+            kill $pid 2>/dev/null || true; sleep 1
+          }
+          shoot focus focus ""
+          shoot focus-complete focus "POMODORO_DEMO_COMPLETE=1"
+          shoot city city ""
+          shoot progress history ""
+          shoot settings settings ""
+          if osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'; then
+            sleep 2
+            shoot dark-focus focus ""
+            shoot dark-city city ""
+            shoot dark-progress history ""
+          else
+            echo "could not switch to dark mode"
+          fi
       - name: Publish CI output branch (logs and screenshots, readable via git)
         if: always()
         continue-on-error: true

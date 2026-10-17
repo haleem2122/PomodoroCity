@@ -8,8 +8,15 @@ swift build -c release
 BIN="$(swift build -c release --show-bin-path)/PomodoroCity"
 cp "$BIN" "$APP/Contents/MacOS/PomodoroCity"
 sed -e "s/__VERSION__/$VERSION/" -e "s/__BUILD__/$BUILD/" Packaging/Info.plist > "$APP/Contents/Info.plist"
-[ -f Packaging/AppIcon.icns ] && cp Packaging/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns" && \
+if [ -f Packaging/AppIcon.png ]; then
+  ICONSET="$OUT/AppIcon.iconset"; mkdir -p "$ICONSET"
+  for s in 16 32 128 256 512; do
+    sips -z $s $s Packaging/AppIcon.png --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
+    sips -z $((s*2)) $((s*2)) Packaging/AppIcon.png --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+  done
+  iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
   /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP/Contents/Info.plist"
+fi
 codesign --force --deep --sign - "$APP"
 codesign --verify --verbose "$APP"
 cp -R "$APP" "$STAGE/"

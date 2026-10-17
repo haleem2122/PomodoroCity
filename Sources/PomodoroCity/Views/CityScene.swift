@@ -30,7 +30,10 @@ public class CityScene: SKScene {
     private let maxZoom: CGFloat = 2.2
 
     public override func didMove(to view: SKView) {
-        backgroundColor = NSColor(red: 0.18, green: 0.22, blue: 0.26, alpha: 1.0)
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        backgroundColor = isDark
+            ? NSColor(srgbRed: 0.149, green: 0.165, blue: 0.141, alpha: 1.0)
+            : NSColor(srgbRed: 0.914, green: 0.894, blue: 0.839, alpha: 1.0)
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
 
         // Setup Scene Graph

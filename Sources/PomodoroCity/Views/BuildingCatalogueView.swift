@@ -9,30 +9,32 @@ public struct BuildingCatalogueView: View {
         self._selectedBuildingType = selectedBuildingType
     }
 
-    // Filter out Town Hall since it is a starter permanent building
+    // Town Hall is a permanent starter building, so it is not offered for construction
     private var availableBuildings: [BuildingType] {
         return BuildingType.allCases.filter { !$0.isPermanent }
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Building Catalogue")
-                    .font(.system(size: 14, weight: .bold))
+                Text("Building catalogue")
+                    .font(Theme.serif(16, .medium))
+                    .foregroundColor(Theme.ink)
                 Spacer()
                 if selectedBuildingType != nil {
-                    Button(action: {
-                        selectedBuildingType = nil
-                    }) {
-                        Text("Cancel Placement")
-                            .font(.system(size: 11))
+                    Button(action: { selectedBuildingType = nil }) {
+                        Text("Cancel placement")
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SmallButtonStyle())
+                } else {
+                    Text("Choose a building, then click a green plot")
+                        .font(Theme.sans(12))
+                        .foregroundColor(Theme.muted)
                 }
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     ForEach(availableBuildings) { building in
                         BuildingCard(
                             type: building,
@@ -48,15 +50,12 @@ public struct BuildingCatalogueView: View {
                         )
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
+                .padding(.horizontal, 1)
             }
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
-                .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
-        )
+        .themedCard(padding: 14, radius: 14)
+        .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 4)
     }
 }
 
@@ -65,62 +64,51 @@ private struct BuildingCard: View {
     let canAfford: Bool
     let isSelected: Bool
     let onSelect: () -> Void
+    @State private var hovering = false
 
     var body: some View {
         Button(action: onSelect) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 8) {
                     Image(systemName: type.iconName)
-                        .font(.system(size: 14))
-                        .foregroundColor(isSelected ? .yellow : .accentColor)
+                        .font(.system(size: 13))
+                        .foregroundColor(Theme.sageDeep)
+                        .frame(width: 26, height: 26)
+                        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Theme.sageSoft))
                     Text(type.displayName)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .font(Theme.sans(12.5, .semibold))
+                        .foregroundColor(Theme.ink)
+                        .lineLimit(1)
                 }
 
-                // Costs
-                HStack(spacing: 6) {
-                    if type.cost.wood > 0 {
-                        Text("\(type.cost.wood)🪵")
-                            .font(.system(size: 10, weight: .medium))
-                    }
-                    if type.cost.stone > 0 {
-                        Text("\(type.cost.stone)🪨")
-                            .font(.system(size: 10, weight: .medium))
-                    }
-                    if type.cost.metal > 0 {
-                        Text("\(type.cost.metal)⚙️")
-                            .font(.system(size: 10, weight: .medium))
-                    }
-                }
+                CostLabel(cost: type.cost)
 
-                // Bonus or function badge
                 if let bonus = type.bonusDescription {
                     Text(bonus)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.green)
+                        .font(Theme.sans(10.5, .medium))
+                        .foregroundColor(Theme.sageDeep)
                         .lineLimit(1)
                 } else {
                     Text("Decorative")
-                        .font(.system(size: 9))
-                        .foregroundColor(.secondary)
+                        .font(Theme.sans(10.5))
+                        .foregroundColor(Theme.muted)
                 }
             }
-            .frame(width: 130, height: 74)
-            .padding(8)
+            .frame(width: 142, alignment: .leading)
+            .padding(10)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.accentColor.opacity(0.2) : Color(nsColor: .controlBackgroundColor))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(
-                                isSelected ? Color.accentColor : (canAfford ? Color.secondary.opacity(0.3) : Color.red.opacity(0.3)),
-                                lineWidth: isSelected ? 2 : 1
-                            )
-                    )
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? Theme.sageSoft : (hovering ? Theme.surface : Theme.raised))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(isSelected ? Theme.sage : (canAfford ? Theme.line : Theme.danger.opacity(0.35)), lineWidth: isSelected ? 1.5 : 1)
             )
         }
         .buttonStyle(.plain)
-        .opacity(canAfford ? 1.0 : 0.6)
+        .opacity(canAfford ? 1.0 : 0.55)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .help(canAfford ? type.description : "Not enough resources. \(type.description)")
     }
 }

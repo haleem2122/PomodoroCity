@@ -10,6 +10,16 @@ public enum TimerState: Equatable {
     case pausedBreak
 }
 
+/// Describes the session that just finished so the UI can show a completion state.
+/// Purely informational: it never feeds back into rewards or persistence.
+public struct SessionCompletion: Equatable, Identifiable {
+    public let id = UUID()
+    public var isFocus: Bool
+    public var minutes: Int
+    public var blocksEarned: Int
+    public var reward: Resources
+}
+
 @MainActor
 public class TimerManager: ObservableObject {
     @Published public var gameState: GameState
@@ -17,6 +27,7 @@ public class TimerManager: ObservableObject {
     @Published public var timeRemaining: TimeInterval = 25 * 60
     @Published public var totalSessionDuration: TimeInterval = 25 * 60
     @Published public var lastRewardSummary: String? = nil
+    @Published public var lastCompletion: SessionCompletion? = nil
 
     private var timerSubscription: AnyCancellable?
     private var sessionStartTime: Date?
@@ -112,6 +123,7 @@ public class TimerManager: ObservableObject {
     // MARK: - Timer Controls
 
     public func startFocus() {
+        lastCompletion = nil
         totalSessionDuration = TimeInterval(gameState.settings.focusDurationMinutes * 60)
         timeRemaining = totalSessionDuration
         sessionStartTime = Date()
@@ -122,6 +134,7 @@ public class TimerManager: ObservableObject {
     }
 
     public func startBreak() {
+        lastCompletion = nil
         totalSessionDuration = TimeInterval(gameState.settings.breakDurationMinutes * 60)
         timeRemaining = totalSessionDuration
         sessionStartTime = Date()
@@ -205,6 +218,9 @@ public class TimerManager: ObservableObject {
 
         gameState.sessionHistory.insert(session, at: 0)
 
+        var completionReward = Resources()
+        var completionBlocks = 0
+
         if isFocus {
             // Update lifetime focus time
             gameState.totalLifetimeFocusSeconds += actualDuration
@@ -239,7 +255,9 @@ public class TimerManager: ObservableObject {
                 }
 
                 gameState.resources.add(Resources(wood: addedWood, stone: addedStone, metal: addedMetal))
+                completionReward.add(Resources(wood: addedWood, stone: addedStone, metal: addedMetal))
             }
+            completionBlocks = newBlocksEarned
 
             // Update streak
             registerCompletedDayForStreak()
@@ -265,6 +283,12 @@ public class TimerManager: ObservableObject {
         )
         timeRemaining = totalSessionDuration
 
+        lastCompletion = SessionCompletion(
+            isFocus: isFocus,
+            minutes: Int(actualDuration / 60),
+            blocksEarned: completionBlocks,
+            reward: completionReward
+        )
         persistState()
     }
 
